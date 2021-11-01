@@ -8,6 +8,8 @@
 #include <pthread.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <semaphore.h>
 
 #define BLOCK_SIZE 4096 // 4k
 
@@ -42,6 +44,7 @@ typedef	struct {
 	pthread_mutex_t		pu_pop_lock;
 //	pthread_mutex_t	take_task_lock;
 	pthread_cond_t		wait_task_cv;
+	pthread_cond_t		res_add_cv;
 	int 				number_of_tasks;
 	TaskAfterProccess	**results_arr; // this will hold pointer to results that are done by worker thread
 }	supply_data;
@@ -66,4 +69,9 @@ char	*get_end_of_region(char *start, long long size);
 long long get_memory_needed(Task *task);
 TaskAfterProccess	**get_init_arr_tasks(int size);
 void	fill_memory_region_by_result(TaskAfterProccess *resTask, Task *task);
+int	get_number_tasks(names *files);;
+void	free_mmap(Task *task, supply_data *data);
+void	proccess_resaults(supply_data *data);
+void	display_resault(TaskAfterProccess **res, int index, int is_last);
+void	free_restask(TaskAfterProccess *task, supply_data *data);
 #endif

@@ -35,13 +35,17 @@ void	excute_task(Task *task, supply_data *data)
 
 	comp_task->start = mmap(NULL, mem, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	fill_memory_region_by_result(comp_task, task);
-	printf("index sub %d\n", task->task_index);
-//	data->results_arr[task->task_index] = comp_task;
+	// here task is no longer needed
+	free_mmap(task, data);
+	data->results_arr[task->task_index] = comp_task;
+	// here i sould add signal other condtion variable
+	// so main can try to see if resTask is ready in array so it can start printing
+	pthread_cond_signal(&data->res_add_cv);
 }
 
 void	fill_memory_region_by_result(TaskAfterProccess *resTask, Task *task)
 {
-	char counter;
+	unsigned char counter;
 	char *ptr;
 	char *reader;
 	char cmp_char;
@@ -59,11 +63,19 @@ void	fill_memory_region_by_result(TaskAfterProccess *resTask, Task *task)
 			if (cur_char != cmp_char)
 				break ;
 			++counter;
+			if (cmp_char == '-')
+				printf("break here\n");
 			++reader;
+			if (reader == task->last){
+				*ptr = cmp_char;
+				*(ptr + 1) = counter;
+				ptr += 2;
+				resTask->end = ptr; // end will point to one charcter after last one
+				return ;
+			}
 		}
 		*ptr = cmp_char;
 		*(ptr + 1) = counter;
 		ptr += 2;
 	}
-	resTask->end = ptr - 1; // end will point to one charcter after last one
 }
