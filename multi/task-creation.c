@@ -2,12 +2,11 @@
 
 void*	create_tasks_func(void *args)
 {
-	struct stat f_info; // this will hold info about file
-	int index; // will help in results of task not in this function
+	struct stat f_info;
+	int index;
 	int fd;
 	int	index_based_on_file;
 	long long size;
-	Task *current_task;
 	supply_data *data = (supply_data *)args;
 	names *files = data->fnames;
 	
@@ -16,13 +15,14 @@ void*	create_tasks_func(void *args)
 	{
 		index_based_on_file = 0;
 		fd = open (files->fname, O_RDONLY);
-		if (fd != -1 && fstat(fd, &f_info) != -1) // else something is not right  about this file
+		if (fd != -1 && fstat(fd, &f_info) != -1)
 		{
 			size = f_info.st_size;
 			while (size > 0)
 			{
 				char *map_ret = mmap(NULL, BLOCK_SIZE, PROT_READ, MAP_PRIVATE, fd, index_based_on_file * BLOCK_SIZE);
-				// here i need to consider if map_ret is valid before adding to the queue
+				if (map_ret == MAP_FAILED)
+					memory_error();
 				Queue *task = getQueTask(map_ret, get_end_of_region(map_ret, size), index);
 				size -= BLOCK_SIZE;
 				pthread_mutex_lock(&data->pu_pop_lock);
@@ -61,18 +61,8 @@ TaskAfterProccess	**get_init_arr_tasks(int size)
 	return tmp;
 }
 
-void	free_mmap(Task *task, supply_data *data)
+void	free_restask(TaskAfterProccess *task)
 {
-	// after i should signal to cond variable
-	// so function that are trying to get memory can do so
-	// later here
-	munmap(task->first, task->last - task->first);
-}
-
-void	free_restask(TaskAfterProccess *task, supply_data *data)
-{
-	// after i should signal to cond variable
-	// so function that are trying to get memory can do so
-	// later here
 	munmap(task->start, task->end - task->start);
+	free(task);
 }

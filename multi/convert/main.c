@@ -13,9 +13,9 @@ int main(int argc, char **argv)
 	struct stat f_info;
 	int fd = open(argv[1], O_RDONLY);
 	fstat(fd, &f_info);
-	int size = f_info.st_size;
+	long long size = f_info.st_size;
 	char *file = mmap(NULL, 4096, PROT_READ, MAP_PRIVATE, fd, 0);
-	int i = 0;
+	long long  i = 0;
 	while (i < size)
 	{
 		count = *(file + 1);

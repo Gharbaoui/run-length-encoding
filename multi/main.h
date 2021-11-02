@@ -31,22 +31,19 @@ typedef struct {
 
 typedef	struct qu{
 	Task *task;
-	// will also be used to submit tasks that are done proccessing by thread
 	struct qu *next;
 	struct qu *last;
-	// last in the head pointer will point to last elment
-	// in other nodes will point to the head
 }	Queue;
 
 typedef	struct {
+	int					tasks_are_done;
 	Queue 				*tasks_head;
 	names 				*fnames;
 	pthread_mutex_t		pu_pop_lock;
-//	pthread_mutex_t	take_task_lock;
 	pthread_cond_t		wait_task_cv;
 	pthread_cond_t		res_add_cv;
 	int 				number_of_tasks;
-	TaskAfterProccess	**results_arr; // this will hold pointer to results that are done by worker thread
+	TaskAfterProccess	**results_arr;
 }	supply_data;
 
 
@@ -55,7 +52,7 @@ Queue	*pop(Queue **head);
 Queue	*back(Queue *head);
 int	empty(Queue *head);
 
-int	get_number_of_threads_and_files_name(char **argv, int size, names **);
+int	get_number_of_threads_and_files_name(char **argv, int size, names **, int *);
 void	add_to_end(names **head, names **node);
 pthread_t	*get_thread_pool(int n);
 Task	*getTask(char *first, char *last, int index);
@@ -70,8 +67,14 @@ long long get_memory_needed(Task *task);
 TaskAfterProccess	**get_init_arr_tasks(int size);
 void	fill_memory_region_by_result(TaskAfterProccess *resTask, Task *task);
 int	get_number_tasks(names *files);;
-void	free_mmap(Task *task, supply_data *data);
+void	free_mmap(Task *task);
 void	proccess_resaults(supply_data *data);
 void	display_resault(TaskAfterProccess **res, int index, int is_last);
-void	free_restask(TaskAfterProccess *task, supply_data *data);
+void	free_restask(TaskAfterProccess *task);
+void	 memory_error();
+void	free_resources(supply_data *data, pthread_t *ths);
+void	free_queue(Queue *q);
+void	free_names(names *fn);
+char    excute(char *start_char, char counter, FILE *file_str);
+void sq_rle(int argc, char **argv);
 #endif
